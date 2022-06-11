@@ -1,0 +1,52 @@
+TIPOS DE DEPENDENCIAS:
+    -DEPENDENCIAS DE DESARROLLO -> Solo las utilizamos mientras estamos desarrollando. npm install "dependencia" -D 
+    -DEPENDENCIAS DE PRODUCCION -> Son las que necesita nuestro proyecto para funcionar. npm install "dependencia"
+
+EJECUTAR NODEMON
+    ./node_modules/.bin/nodemon index.js
+
+Los scripts del package.json miran directamente al directorio ./node_modules/.bin/
+
+ESLINT
+Los Linter nos ayudan a manteren una sintaxis en nuestro codio, el mas extendido es eslint -> npm install eslint -D
+Es necesaria la extension de vscode llamada ESLint y Error Leans.
+
+Para configurarlo desde cero -> ./node_modules/.bin/eslint --init
+Añadir al package.json en scripts como "lint": "eslint ."
+
+STANDARD
+Configuracion de eslist github.com/standard/standard
+Para instalar esta configuracion de eslint -> npm install standard -D
+Ya se puede eleminar eslint del package.json por standar ya utiliza eslint por detras.
+Añadir en el package.json "eslintConfig": {
+                            "extends": "./node_modules/standard/eslintrc.json"
+                             }
+
+MIDDLEWARE
+Es una funcion que intercepta la peticion que esta pasando por tu API.
+
+MODULOS
+Para exportar un modulo -> module.exports = NOMBRE DE LA FUNCION
+Para importarlo -> const NOMBRE = require('RUTA DEL MODULO')
+
+CORS
+Info -> https://developer.mozilla.org/es/docs/Web/HTTP/CORS
+Para quitar el error de cors existe un middleware en express
+npm install cors -E 
+Es una dependencia de desarrollo.
+
+
+HEROKU
+Crear archio Procfile en la raiz.
+Hay que poner que tipo de servico es el que queremos deployar 
+en este caso es un servicio web.
+Y cual es el comando que tiene que utilizar para inicializar este servicio.
+
+Habria que poner en este caso:
+    web: npm start
+
+Instalar heroku cli 
+
+En heroku no le puedes decir el puerto que tiene que utilizar.
+Lo saca de una variable de entorno que se llama process.env.PORT
+En el index.js del backend poner PORT = process.env.PORT || 3001
