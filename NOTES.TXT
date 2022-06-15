@@ -54,3 +54,7 @@ En el index.js del backend poner PORT = process.env.PORT || 3001
 Despues en terminal con heroku create y nos da un link donde hacer los push desde git
 Podemor hacer git remote y veremos los destinos y aparecera heroku
 Con git remote show heroku vemos el link 
+
+Cuando este todo hacemos git push heroku main, lo que hace es subir la rama main al destino heroku
+
+Y ya nos facilita el link con el servicio desplegado.

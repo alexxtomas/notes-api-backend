@@ -1,104 +1,107 @@
+require('dotenv').config()
+require('./mongo.js')
+
+const Sentry = require('@sentry/node')
+const Tracing = require('@sentry/tracing')
+const Note = require('./models/Note.js')
 const express = require('express')
 const cors = require('cors')
-const logger = require('./loggerMiddleware')
+const notFound = require('./middleware/notFound.js')
+const handleErrors = require('./middleware/handleErrors.js')
 const app = express()
 
-// const corsOptions = {
-//   origin: 'http://localhost:3000',
-//   optionsSuccessStatus: 200
-// }
 app.use(cors())
 app.use(express.json())
-app.use(logger)
 
-let notes = [
-  {
-    id: 1,
-    content: 'Me tengo que suscribir a @midudev en Youtube y Twitch',
-    date: '08-06-22',
-    important: true
-  },
-  {
-    id: 2,
-    content: 'Tengo que estudiar las clases del FullStack Bootcamp',
-    date: '28-05-22',
-    important: true
-  },
-  {
-    id: 3,
-    content: 'Repasar los retos de JS de midudev',
-    date: '21-03-22',
-    important: true
-  },
-  {
-    id: 4,
-    content: 'Repasar ',
-    date: '21-03-22',
-    important: false
-  }
-]
+Sentry.init({
+  dsn: 'https://7b82c09c2cb64be1b15b356bc414c1f7@o1289291.ingest.sentry.io/6507606',
+  integrations: [
+    // enable HTTP calls tracing
+    new Sentry.Integrations.Http({ tracing: true }),
+    // enable Express.js middleware tracing
+    new Tracing.Integrations.Express({ app })
+  ],
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0
+})
+
+// RequestHandler creates a separate execution context using domains, so that every
+// transaction/span/breadcrumb is attached to its own Hub instance
+app.use(Sentry.Handlers.requestHandler())
+// TracingHandler creates a trace for every incoming request
+app.use(Sentry.Handlers.tracingHandler())
+
+// const notes = []
 
 app.get('/api/notes', (req, res) => {
-  res.json(notes)
+  Note.find({}).then(notes => res.json(notes))
 })
 
-app.get('/api/notes/:id', (req, res) => {
+app.get('/api/notes/:id', (req, res, next) => {
   const id = req.params.id
 
-  const note = notes.find(note => note.id === Number(id))
-  if (note === undefined) res.status(404).end()
-  else res.json(note)
+  // Find notes by id in the database
+  Note.findById(id).then(note => {
+    if (note === undefined) res.status(404).end()
+    else res.json(note)
+  })
+    .catch(err => {
+      next(err)
+    })
 })
 
-app.delete('/api/notes/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const checkId = notes.find(note => note.id === id)
-  if (checkId === undefined) res.status(404).json({ error: 'The id does not correspond to any note' }).end()
-  else {
-    res.json({
-      deleted: notes[id - 1]
-    }).status(200)
-    notes = notes.filter(note => note.id !== id)
-  }
+app.delete('/api/notes/:id', (req, res, next) => {
+  const { id } = req.params
+  // Remove note from database
+  Note.findByIdAndRemove(id).then(result => {
+    res.status(204).end()
+  })
+    .catch(err => next(err))
 })
 
 app.post('/api/notes', (req, res) => {
-  let noteToAdd = req.body
-  console.log(noteToAdd)
-  if (!noteToAdd.content) res.status(400).json({ error: 'note.content is missing' })
-  else {
-    let isImportant
-    (!noteToAdd.important) ? isImportant = false : isImportant = true
-    const ids = notes.map(note => note.id)
-    noteToAdd = {
-      id: Math.max(...ids) + 1,
-      content: req.body.content,
-      date: new Date().toISOString(),
-      important: isImportant
+  const note = req.body
 
-    }
-    noteToAdd.id = Math.max(...ids) + 1
-    noteToAdd.date = new Date().toISOString()
-    notes = [...notes, noteToAdd]
-    res.status(201).json({ note: noteToAdd })
+  if (!note.content) {
+    return res.status(400).json({
+      error: 'required "content" field is missing'
+    })
   }
+  // Save Note in the database
+  const newNote = new Note({
+    content: note.content,
+    date: new Date(),
+    important: note.important || false
+  })
+  newNote.save().then(savedNote => res.json(savedNote))
 })
 
-app.put('/api/notes/:id', (req, res) => {
-  const id = req.params.id
-  if (typeof req.body.important === 'boolean') {
-    notes[id].important = req.body.important
-    res.json(notes[id])
-  } else res.status(304).json({ error: 'The type of important is not boolean' }).end()
+app.put('/api/notes/:id', (req, res, next) => {
+  const { id } = req.params
+  const note = req.body
+
+  const newNoteInfo = {
+    content: note.content,
+    important: note.important
+  }
+  // Modify note in the database
+  Note.findByIdAndUpdate(id, newNoteInfo, { new: true })
+    .then(result => {
+      res.json(result)
+    })
+    .catch(err => next(err))
 })
 
-app.use((req, res, next) => {
-  res.status(404).json({
-    error: 'Not Found'
-  }).end()
-})
+app.use(notFound)
 
-const PORT = process.env.PORT || 3001
+app.use(Sentry.Handlers.errorHandler())
+
+app.use(handleErrors)
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
