@@ -1,0 +1,51 @@
+// PART 4 
+Mocha era una de las herramientas mas usada a nivel de testing.
+Otra opcion seria ava.
+
+Herramienta JEST es la herramienta utilizada en este proyecto para hacer teesting en el backend. Para instalarlo :
+    -> npm install jest -D
+
+JEST estaba pensado principalemtne para el entrono del cliente, para que no nos de problemas hay que añadir al package.json :
+    -> "jest": {
+        "testEnvironment": "node"
+    }
+
+Por defecto JEST busca todos los archovos que tengan el test.js
+
+ESLint no detecta los metodos de JEST para solucionarlo en la configuracion del eslint que en este caso esta en el package.json
+como eslintConfig añadir :
+    -> "env": {
+        "jest": true
+    }
+
+Para realizar el test añadir en scripts del package.json : 
+    -> "test": "jest --verbose"
+
+TESTEANDO NUESTRA APP CON TEST DE INTEGRACION
+Hay que indicar en que modo estamos, no es lo mismo estar en produccion que en desarrollo o testing.
+Para indicar esto en el package.json en scripts : 
+    -> en "dev" añadir "dev": "NODE_ENV=development nodemon index.js"
+    -> en "start" añadir "start": "NODE_ENV=production node index.js"
+    -> en "test" añadir "test": "NODE_ENV=test jest --verbose"
+
+En windows esto no funciona bien y para que funcione hay que instalar cross-env :
+    -> npm install cross-env
+
+Y habria que añadir las varables de entrono tal que asi: 
+    -> "dev": "cross-env NODE_ENV=development nodemon index.js"
+    -> "start": "cross-env NODE_ENV=production node index.js"
+    -> "test": "cross-env NODE_ENV=test jest --verbose"
+
+En el archivo .env en vez de tener la variable MONGO_DB_URI=mongodb+srv://alex:<tucontraseña>@cluster0.emqldz9.mongodb.net/notes-app?retryWrites=true&w=majority
+Lo cambiamos por MONGO_DB_URI_TEST=mongodb+srv://alex:<tucontraseña>@cluster0.emqldz9.mongodb.net/notes-app-test?retryWrites=true&w=majority
+
+Esto es una mala practica pero lo cambiaremos mas adelante
+
+Tambien es importante que no nos conectemos a la base de datos de produccion, para eso en el conncectionString lo cambiamos a la 
+base de datos de test.
+
+Vamos a comprobar los endpoints y para eso vamos a utilizar SuperTest https://github.com/visionmedia/supertest
+Para instalarlo -> npm install supertest -D
+
+ver notes.test.js
+Añadir al package.json en test al jest el --silent para lo que los console.log no te los muestre

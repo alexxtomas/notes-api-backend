@@ -36,7 +36,7 @@ app.use(Sentry.Handlers.tracingHandler())
 
 // const notes = []
 
-app.get('/api/notes', (req, res) => {
+app.get('/api/notes', async (req, res) => {
   Note.find({}).then(notes => res.json(notes))
 })
 
@@ -83,6 +83,12 @@ app.put('/api/notes/:id', (req, res, next) => {
   const { id } = req.params
   const note = req.body
 
+  if (!note.content || !note.important) {
+    res.status(400).json({
+      error: 'content or important is requeried to modify note'
+    })
+  }
+
   const newNoteInfo = {
     content: note.content,
     important: note.important
@@ -102,6 +108,10 @@ app.use(Sentry.Handlers.errorHandler())
 app.use(handleErrors)
 
 const PORT = process.env.PORT
-app.listen(PORT, () => {
+// El app.listen devuelve el servidor que se ha creado y lo exportamos para poder cerrarlo para pasar los test
+const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+
+// Exportamos la app y el sevidor para el archivo notes.test.js
+module.exports = { app, server }

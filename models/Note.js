@@ -17,6 +17,7 @@ noteSchema.set('toJSON', {
 })
 
 // Crear modelo con el esquema previamente definido
+
 const Note = model('Note', noteSchema)
 
 // // Encontrar los datos que hemos creado

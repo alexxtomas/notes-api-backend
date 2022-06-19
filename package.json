@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "start": "cross-env NODE_ENV=production node index.js",
+    "test": "cross-env NODE_ENV=test jest --verbose --silent --forceExit tests/notes.test.js",
+    "test:watch": "npm run test -- --watch"
   },
   "keywords": [],
   "author": "",
@@ -15,15 +16,24 @@
     "@sentry/node": "^7.1.1",
     "@sentry/tracing": "^7.1.1",
     "cors": "2.8.5",
+    "cross-env": "^7.0.3",
     "dotenv": "16.0.1",
     "express": "4.18.1",
     "mongoose": "6.3.8"
   },
   "devDependencies": {
+    "jest": "^28.1.1",
     "nodemon": "2.0.16",
-    "standard": "17.0.0"
+    "standard": "17.0.0",
+    "supertest": "^6.2.3"
   },
   "eslintConfig": {
-    "extends": "./node_modules/standard/eslintrc.json"
+    "extends": "./node_modules/standard/eslintrc.json",
+    "env": {
+      "jest": true
+    }
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }
