@@ -49,3 +49,18 @@ Para instalarlo -> npm install supertest -D
 
 ver notes.test.js
 Añadir al package.json en test al jest el --silent para lo que los console.log no te los muestre
+
+Crear usuarios y añadir seguridad atus contraseñas en mongodb
+-En Models añadido el archivo User.js
+-Controladores para tender los endpoints y exportarlos al index.js para que sea mas leible 
+-Instalar bcrypt para encriptar las contraseñas antes de guardarlas en la base de datos. -> npm install bcrypt
+-mongoose-unique-validator libreria para que los datos sean unicos -> npm install --save mongoose-unique-validator
+
+Para el login se ha creado un nuevo controlador /controllers/login
+Para persistir el login y que las dos partes se pueden comunicar de manera seguridad
+es totalmente agnostico, tiene un token firmado digitalmente lo que hace que sea muy dificil 
+de falsificar. Para ello el estandar en la industria es JSON Web token.
+Para instalarlo -> npm install jsonwebtoken
+
+El token se envia por el header Authorization
+Vamos a utlizar el esquema Bearer 

@@ -1,13 +1,16 @@
 require('dotenv').config()
 require('./mongo.js')
+require('express-async-errors')
 
 const Sentry = require('@sentry/node')
 const Tracing = require('@sentry/tracing')
-const Note = require('./models/Note.js')
 const express = require('express')
 const cors = require('cors')
 const notFound = require('./middleware/notFound.js')
 const handleErrors = require('./middleware/handleErrors.js')
+const usersRouter = require('./controllers/users')
+const notesRouter = require('./controllers/notes.js')
+const loginRouter = require('./controllers/login.js')
 const app = express()
 
 app.use(cors())
@@ -34,72 +37,9 @@ app.use(Sentry.Handlers.requestHandler())
 // TracingHandler creates a trace for every incoming request
 app.use(Sentry.Handlers.tracingHandler())
 
-// const notes = []
-
-app.get('/api/notes', async (req, res) => {
-  Note.find({}).then(notes => res.json(notes))
-})
-
-app.get('/api/notes/:id', (req, res, next) => {
-  const id = req.params.id
-
-  // Find notes by id in the database
-  Note.findById(id).then(note => {
-    if (note === undefined) res.status(404).end()
-    else res.json(note)
-  })
-    .catch(err => {
-      next(err)
-    })
-})
-
-app.delete('/api/notes/:id', (req, res, next) => {
-  const { id } = req.params
-  // Remove note from database
-  Note.findByIdAndRemove(id).then(result => {
-    res.status(204).end()
-  })
-    .catch(err => next(err))
-})
-
-app.post('/api/notes', (req, res) => {
-  const note = req.body
-
-  if (!note.content) {
-    return res.status(400).json({
-      error: 'required "content" field is missing'
-    })
-  }
-  // Save Note in the database
-  const newNote = new Note({
-    content: note.content,
-    date: new Date(),
-    important: note.important || false
-  })
-  newNote.save().then(savedNote => res.json(savedNote))
-})
-
-app.put('/api/notes/:id', (req, res, next) => {
-  const { id } = req.params
-  const note = req.body
-
-  if (!note.content || !note.important) {
-    res.status(400).json({
-      error: 'content or important is requeried to modify note'
-    })
-  }
-
-  const newNoteInfo = {
-    content: note.content,
-    important: note.important
-  }
-  // Modify note in the database
-  Note.findByIdAndUpdate(id, newNoteInfo, { new: true })
-    .then(result => {
-      res.json(result)
-    })
-    .catch(err => next(err))
-})
+app.use('/api/notes', notesRouter)
+app.use('/api/users', usersRouter)
+app.use('/api/login', loginRouter)
 
 app.use(notFound)
 

@@ -45,7 +45,8 @@ describe('POST /api/notes', () => {
   test('a valid note can be added', async () => {
     const newNote = {
       content: 'Proximamente async/await',
-      important: true
+      important: true,
+      userId: '62b60d882a4111b1426de485'
     }
 
     await api
@@ -101,7 +102,7 @@ describe('DELETE /api/notes/:id', () => {
   })
 })
 
-describe('POST /api/notes/:id', () => {
+describe('PUT /api/notes/:id', () => {
   test('a note is modified succesfully ', async () => {
     const { response: firstResponse } = await getAllContentFromNotes()
     const { body: notes } = firstResponse
